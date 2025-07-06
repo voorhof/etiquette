@@ -1,0 +1,87 @@
+permissions:
+  contents: read
+name: Run tests
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+      - '*.x'
+  pull_request:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  stub-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        php: [8.4, 8.3, 8.2]
+        laravel: [12]
+        args: [""]
+        include:
+          - laravel: 12
+            testbench: ^10.0
+
+    name: Test Stubs - Laravel ${{ matrix.php }} - ${{ matrix.laravel }} ${{ matrix.args }} - ${{ matrix.os }}
+
+    steps:
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip
+          ini-values: error_reporting=E_ALL
+          tools: composer:v2
+          coverage: none
+
+      - name: Create Laravel Project Directory
+        run: mkdir laravel-app
+
+      - name: Setup Laravel
+        working-directory: laravel-app
+        if: ${{ matrix.laravel != '12' }}
+        run: |
+          composer create-project laravel/laravel:^${{ matrix.laravel }}.0 .
+          composer config repositories.etiquette '{"type": "path", "url": "../etiquette"}' --file composer.json
+
+      - name: Setup Laravel (dev-master)
+        working-directory: laravel-app
+        if: ${{ matrix.laravel == '12' }}
+        run: |
+          composer create-project laravel/laravel:dev-master .
+          composer config repositories.etiquette '{"type": "path", "url": "../etiquette"}' --file composer.json
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          path: 'etiquette'
+
+      - name: Install Etiquette
+        working-directory: laravel-app
+        run: |
+          composer require voorhof/etiquette:@dev --dev --prefer-dist --no-interaction --no-progress -W
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install NPM dependencies
+        working-directory: laravel-app
+        run: npm ci --no-interaction
+
+      - name: Compile assets
+        working-directory: laravel-app
+        run: npm run build --no-interaction
+
+      - name: Execute tests
+        working-directory: laravel-app
+        run: 'vendor/bin/pest'
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
