@@ -54,7 +54,6 @@ trait FileOperations
      * @param  string  $search  Search string
      * @param  string  $replace  Replacement string
      * @param  string  $path  File path
-     *
      * @return bool Success status
      */
     protected function replaceInFile(string $search, string $replace, string $path): bool
