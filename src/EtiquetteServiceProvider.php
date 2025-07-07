@@ -12,7 +12,7 @@ class EtiquetteServiceProvider extends ServiceProvider implements DeferrableProv
      */
     public function register(): void
     {
-        //
+        // Traits don't need registration as they are loaded through composer's autoloading
     }
 
     /**
@@ -20,7 +20,7 @@ class EtiquetteServiceProvider extends ServiceProvider implements DeferrableProv
      */
     public function boot(): void
     {
-        //
+        // No need to bootstrap anything for traits
     }
 
     /**
@@ -28,6 +28,7 @@ class EtiquetteServiceProvider extends ServiceProvider implements DeferrableProv
      */
     public function provides(): array
     {
-        return [];
+        return []; // No services to provide as traits are not services
+
     }
 }
