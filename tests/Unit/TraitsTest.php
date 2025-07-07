@@ -15,7 +15,7 @@ class TraitsTest extends TestCase
     use NodePackageOperations;
     use TestFrameworkOperations;
 
-    public function testTraitsExist(): void
+    public function test_traits_exist(): void
     {
         $this->assertTrue(trait_exists(ComposerOperations::class));
         $this->assertTrue(trait_exists(FileOperations::class));
